@@ -65,6 +65,7 @@ private:
         std::wstring dirNameString;
         std::wstring replaceDirName;
         std::array<int, 4> dirNameInt{ 0,0,0,0 };
+        int minFileIndex{ 0 };
 
         /* 构造执行目录 */
         template<typename T>
@@ -179,7 +180,21 @@ private:
                         auto const varFileName = varPath.filename().wstring();
                         varFileNames.push_back(toInt(varFileName));
                         if (!std::regex_match(varFileName, varCheckRegex)) {
-                            wcout_() << varFileName << LR"( 错误的文件名 ??? )"sv << std::endl;
+                            /*更改不规范的图片名称...*/
+                            const static std::wregex varCheckRegex1{ LR"([0-9]{4}[.][jJ][pP][gG])" };
+                            if (std::regex_match(varFileName, varCheckRegex1)) {
+                                auto varNewFilePath = varPath;
+                                auto varNewFileName = varFileName;
+                                varNewFileName.resize(varFileName.size()-3);
+                                try {
+                                    std::filesystem::rename(varPath,
+                                        varNewFilePath.replace_filename(varNewFileName += LR"(jpg)"sv));
+                                } catch ( const std::exception & e) {
+                                    cout_() << e.what() << std::endl;
+                                }
+                            } else {
+                                wcout_() << varFileName << LR"( 错误的文件名 ??? )"sv << std::endl;
+                            }
                         }
                     }
                     std::sort(varFileNames.begin(), varFileNames.end());
@@ -189,7 +204,7 @@ private:
                     return;
                 }
                 if (varFileNames[0] <= 0) {
-                    wcout_() << dirName << LR"( 目录最小编号小于1 ??? )"sv << std::endl;
+                    wcout_() << dirName << LR"( 文件最小编号小于 1 ??? )"sv << std::endl;
                 }
                 for (const auto & varI : varFileNames) {
                     varReplaceName = varI;
@@ -206,6 +221,7 @@ private:
                     << std::endl;
                 throw std::runtime_error("严重错误，停止！"s);
             }
+            minFileIndex = varReplaceName;
             replaceDirName.resize(replaceDirName.size() - 3);
             replaceDirName += toWstring(varReplaceName);
         }
@@ -239,13 +255,48 @@ public:
         /* 创建所有执行目录对象 */
         makeDirs();
 
+        /* 检查目录数 */
+        if (dirs.size() < 2) {
+            wcout_() << LR"(目录小于2)"sv;
+            throw std::runtime_error("严重错误，停止！"s);
+        }
+
         /* 将所有目录对象按照由大到小排序 */
         dirs.sort([](const auto & l, const auto & r) {
             return l->dirNameInt[3] > r->dirNameInt[3];
         });
-        dirs.unique([](const auto & l, const auto & r) {
-            return l->dirNameInt[3] == r->dirNameInt[3];
-        });
+
+        {/* 检查卷宗号是否一致，目录号是否重复，文件编号有无逆序 */
+            auto varNextPos = dirs.begin();
+            const auto varEnd = dirs.end();
+            for (auto varPos = varNextPos++; varNextPos != varEnd; varPos = varNextPos++) {
+                if (((*varPos)->minFileIndex <= (*varNextPos)->minFileIndex) ||
+                    ((*varPos)->dirNameInt[3] == (*varNextPos)->dirNameInt[3])) {
+                    wcout_()
+                        << LR"(目录：)"sv << (*varPos)->dirNameString 
+                        << LR"(最小文件号：)"sv 
+                        << (*varPos)->minFileIndex
+                        << std::endl
+                        << LR"(目录：)"sv << (*varNextPos)->dirNameString 
+                        << LR"(最小文件号：)"sv 
+                        << (*varNextPos)->minFileIndex
+                        << std::endl
+                        << LR"(最小文件编号逆序)"sv
+                        << std::endl;
+                    throw std::runtime_error("严重错误，停止！"s);
+                }
+                if (((*varPos)->dirNameInt[0] != (*varNextPos)->dirNameInt[0]) ||
+                    ((*varPos)->dirNameInt[1] != (*varNextPos)->dirNameInt[1]) ||
+                    ((*varPos)->dirNameInt[2] != (*varNextPos)->dirNameInt[2])) {
+                    wcout_()
+                        << LR"(目录：)"sv << (*varPos)->dirNameString << std::endl
+                        << LR"(目录：)"sv << (*varNextPos)->dirNameString << std::endl
+                        << LR"(卷宗编号不一致)"sv
+                        << std::endl;
+                    throw std::runtime_error("严重错误，停止！"s);
+                }
+            }
+        }
 
         /* 执行重命名 */
         for (auto & varI : dirs) {
