@@ -185,11 +185,11 @@ private:
                             if (std::regex_match(varFileName, varCheckRegex1)) {
                                 auto varNewFilePath = varPath;
                                 auto varNewFileName = varFileName;
-                                varNewFileName.resize(varFileName.size()-3);
+                                varNewFileName.resize(1+varFileName.find_last_of(L'.'));
                                 try {
                                     std::filesystem::rename(varPath,
                                         varNewFilePath.replace_filename(varNewFileName += LR"(jpg)"sv));
-                                } catch ( const std::exception & e) {
+                                } catch (const std::exception & e) {
                                     cout_() << e.what() << std::endl;
                                 }
                             } else {
@@ -273,12 +273,12 @@ public:
                 if (((*varPos)->minFileIndex <= (*varNextPos)->minFileIndex) ||
                     ((*varPos)->dirNameInt[3] == (*varNextPos)->dirNameInt[3])) {
                     wcout_()
-                        << LR"(目录：)"sv << (*varPos)->dirNameString 
-                        << LR"(最小文件号：)"sv 
+                        << LR"(目录：)"sv << (*varPos)->dirNameString
+                        << LR"(最小文件号：)"sv
                         << (*varPos)->minFileIndex
                         << std::endl
-                        << LR"(目录：)"sv << (*varNextPos)->dirNameString 
-                        << LR"(最小文件号：)"sv 
+                        << LR"(目录：)"sv << (*varNextPos)->dirNameString
+                        << LR"(最小文件号：)"sv
                         << (*varNextPos)->minFileIndex
                         << std::endl
                         << LR"(最小文件编号逆序或目录重复)"sv
