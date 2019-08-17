@@ -181,7 +181,7 @@ private:
                         varFileNames.push_back(toInt(varFileName));
                         if (!std::regex_match(varFileName, varCheckRegex)) {
                             /*更改不规范的图片名称...*/
-                            const static std::wregex varCheckRegex1{ LR"([0-9]{4}[.][jJ][pP][gG])" };
+                            const static std::wregex varCheckRegex1{ LR"([0-9]{4}[.][jJ][pP][eE]?[gG])" };
                             if (std::regex_match(varFileName, varCheckRegex1)) {
                                 auto varNewFilePath = varPath;
                                 auto varNewFileName = varFileName;
