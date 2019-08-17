@@ -10,6 +10,7 @@
 
 #include <list>
 #include <regex>
+#include <array>
 #include <string>
 #include <memory>
 #include <vector>
@@ -17,6 +18,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <string_view>
+
+#include <exception>
+#include <stdexcept>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -60,6 +64,7 @@ private:
         const Path dirName;
         std::wstring dirNameString;
         std::wstring replaceDirName;
+        std::array<int, 4> dirNameInt{ 0,0,0,0 };
 
         /* 构造执行目录 */
         template<typename T>
@@ -146,6 +151,10 @@ private:
                 + formatWstring(varMatch[4].str())
                 + LR"(-)"s
                 + formatWstring(varMatch[5].str());
+            dirNameInt[0] = toInt(varMatch[2]);
+            dirNameInt[1] = toInt(varMatch[3]);
+            dirNameInt[2] = toInt(varMatch[4]);
+            dirNameInt[3] = toInt(varMatch[5]);
             if (varFormatString == dirNameString) {
                 return;
             }
@@ -179,12 +188,23 @@ private:
                     wcout_() << dirName << LR"( 空目录 ??? )"sv << std::endl;
                     return;
                 }
+                if (varFileNames[0] <= 0) {
+                    wcout_() << dirName << LR"( 目录最小编号小于1 ??? )"sv << std::endl;
+                }
                 for (const auto & varI : varFileNames) {
                     varReplaceName = varI;
                     if (varReplaceName != 0) {
                         break;
                     }
                 }
+            }
+            if (varReplaceName < dirNameInt[3]) {
+                wcout_()
+                    << LR"(目录：)"sv << dirNameString
+                    << LR"(文件最小编号：)"sv << varReplaceName
+                    << LR"(小于目录编号：)"sv << dirNameInt[3]
+                    << std::endl;
+                throw std::runtime_error("严重错误，停止！"s);
             }
             replaceDirName.resize(replaceDirName.size() - 3);
             replaceDirName += toWstring(varReplaceName);
@@ -221,10 +241,10 @@ public:
 
         /* 将所有目录对象按照由大到小排序 */
         dirs.sort([](const auto & l, const auto & r) {
-            return l->replaceDirName > r->replaceDirName;
+            return l->dirNameInt[3] > r->dirNameInt[3];
         });
         dirs.unique([](const auto & l, const auto & r) {
-            return l->replaceDirName == r->replaceDirName;
+            return l->dirNameInt[3] == r->dirNameInt[3];
         });
 
         /* 执行重命名 */
@@ -237,6 +257,8 @@ public:
         }
 
         return true;
+    } catch (const std::exception & e) {
+        throw e;
     } catch (...) {
         return false;
     }
