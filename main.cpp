@@ -3,7 +3,8 @@
 // 编译时应当选择64位编译
 // 编译时应当编译Release版本
 // 运行时库选择MT
-// 编译完成后应当在 Win 7 64位电脑上进行简单测试
+// 编译完成后应当在 Win 7 64位电脑上进行简单测试：建立一个空目录，将程序拷贝-
+// 到空目录，双击运行，看是否有不兼容警告
 
 #include <list>
 #include <regex>
@@ -239,6 +240,7 @@ public:
 };
 
 #include <locale>
+bool globalNeedPause = false;
 
 int main(int argc, char ** argv) try {
 
@@ -251,15 +253,23 @@ int main(int argc, char ** argv) try {
 
     if (argc < 2) {
         std::filesystem::path varPath{ argv[0] };
+        globalNeedPause = true;
         varDuty = std::make_unique<Duty>(varPath.parent_path());
     } else {
         varDuty = std::make_unique<Duty>(argv[1]);
     }
 
-    return !varDuty->apply();
+    auto varAns = !varDuty->apply();
+    if (globalNeedPause) {
+        system("pause");
+    }
+    return varAns;
 
 } catch (const std::exception & e) {
     cout_() << e.what() << std::endl;
+    if (globalNeedPause) {
+        system("pause");
+    }
     return -1;
 }
 
