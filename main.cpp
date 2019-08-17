@@ -78,26 +78,26 @@ private:
         /* 检查文件名格式是否符合要求 */
         inline bool isFormatDir() const {
             const auto & varDirName = dirNameString;
-            {/* 符合要求 ... */
+            {/* 符合要求 ... 根据文件名进一步处理 */
                 const static std::wregex varMatchRegex{ LR"([A-Z][0-9]{3}-[0-9]{3}-[0-9]{3}-[0-9]{3})" };
                 if (std::regex_match(varDirName, varMatchRegex)) {
                     return true;
                 }
             }
-            {/* 符合要求 ... */
+            {/* 符合要求 ... 不处理 */
                 const static std::wregex varMatchRegex{ LR"([A-Z][0-9]{3}-[0-9]{3}-[0-9]{3})" };
                 if (std::regex_match(varDirName, varMatchRegex)) {
                     return false;
                 }
             }
-            {/* 轻微错误 ... */
+            {/* 轻微错误 ... 根据文件名进一步处理 */
                 const static std::wregex varMatchRegex{ LR"([A-Z][0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3})" };
                 if (std::regex_match(varDirName, varMatchRegex)) {
                     wcout_() << varDirName << LR"( 此目录名错误，将被替换 !!! )" << std::endl;
                     return true;
                 }
             }
-            /* 完全错误 ... */
+            /* 完全错误 ... 无法处理 */
             wcout_() << varDirName << LR"( 错误的目录名 ??? )" << std::endl;
             return false;
         }
@@ -281,7 +281,7 @@ public:
                         << LR"(最小文件号：)"sv 
                         << (*varNextPos)->minFileIndex
                         << std::endl
-                        << LR"(最小文件编号逆序)"sv
+                        << LR"(最小文件编号逆序或目录重复)"sv
                         << std::endl;
                     throw std::runtime_error("严重错误，停止！"s);
                 }
