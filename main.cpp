@@ -221,9 +221,11 @@ public:
 
         /* 将所有目录对象按照由大到小排序 */
         dirs.sort([](const auto & l, const auto & r) {
-            return l->dirNameString > r->dirNameString;
+            return l->replaceDirName > r->replaceDirName;
         });
-        dirs.unique();
+        dirs.unique([](const auto & l, const auto & r) {
+            return l->replaceDirName == r->replaceDirName;
+        });
 
         /* 执行重命名 */
         for (auto & varI : dirs) {
