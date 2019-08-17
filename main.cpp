@@ -6,6 +6,8 @@
 // 编译完成后应当在 Win 7 64位电脑上进行简单测试：建立一个空目录，将程序拷贝-
 // 到空目录，双击运行，看是否有不兼容警告
 
+// https://github.com/ngzqqb/simple_change_dir_name
+
 #include <list>
 #include <regex>
 #include <string>
